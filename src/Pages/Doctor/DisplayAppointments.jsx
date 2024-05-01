@@ -87,13 +87,22 @@ function DisplayAppointments() {
           </thead>
           <tbody>
             {appointments.map((ap, ind) => {
+              let status;
+              switch (ap.status) {
+                case "BOOKED":
+                  status = "table-warning";
+                  break;
+                case "COMPLETED":
+                  status = "table-success";
+                  break;
+                case "CANCELLED":
+                  status = "table-danger";
+                  break;
+                default:
+                  break;
+              }
               return (
-                <tr
-                  key={ind}
-                  className={`${
-                    ap.status === "BOOKED" ? "table-warning" : "table-success"
-                  }`}
-                >
+                <tr key={ind} className={status}>
                   <th scope="row">{ap.appointment_id}</th>
                   <td>{ap.name}</td>
                   <td>{getAge(ap.dob)}</td>

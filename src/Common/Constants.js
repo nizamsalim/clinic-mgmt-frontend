@@ -45,6 +45,7 @@ export const API = {
     updateDoctor: `${ADMIN_API}/doctor/update`,
     deleteDoctor: `${ADMIN_API}/doctor/delete`,
     getDoctors: `${ADMIN_API}/doctors/get`,
+    getDoctorByName: `${ADMIN_API}/doctor/get`,
     getDepartments: `${ADMIN_API}/departments`,
     getSpecializations: `${ADMIN_API}/specializations`,
     getSpecialization: `${ADMIN_API}/specialization`,
@@ -53,7 +54,10 @@ export const API = {
     createDepartment: `${ADMIN_API}/department/create`,
     createSpecialization: `${ADMIN_API}/specialization/create`,
     getAllAppointments: `${ADMIN_API}/appointments`,
+    getAppointmentById: `${ADMIN_API}/appointment`,
     generateToken: `${ADMIN_API}/token`,
+    getAllPatients: `${ADMIN_API}/patients`,
+    getPatientByName: `${ADMIN_API}/patient`,
   },
   doctor: {
     createAvailability: `${DOCTOR_API}/availability/create`,
@@ -66,5 +70,6 @@ export const API = {
     createAppointment: `${PATIENT_API}/appointment/create`,
     getAvailableDoctors: `${PATIENT_API}/availabledoctors`,
     getMyAppointments: `${PATIENT_API}/appointments`,
+    cancelAppointment: `${PATIENT_API}/appointment`,
   },
 };

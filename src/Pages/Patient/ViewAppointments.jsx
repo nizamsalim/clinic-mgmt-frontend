@@ -6,7 +6,8 @@ function ViewAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState("");
   const auth_token = localStorage.getItem("auth_token");
-  useEffect(() => {
+
+  const getAppointments = () => {
     axios
       .get(API.patient.getMyAppointments, { headers: { auth_token } })
       .then(({ data }) => {
@@ -14,14 +15,29 @@ function ViewAppointments() {
           if (data.appointments.length === 0) {
             setError("You have no upcoming appointments");
           }
+          console.log(data.appointments);
           setAppointments(data.appointments);
         }
       });
-
+  };
+  useEffect(() => {
+    getAppointments();
     return () => {};
-  }, [auth_token]);
+  }, []);
 
-  const handleCancelAppointment = (ap_id) => {};
+  const handleCancelAppointment = (ap_id) => {
+    axios
+      .delete(`${API.patient.cancelAppointment}/${ap_id}`, {
+        headers: { auth_token },
+      })
+      .then(({ data }) => {
+        if (!data.success) {
+          return alert(data.error);
+        }
+        alert("Appointment cancelled");
+        getAppointments();
+      });
+  };
 
   return (
     <div className="container">
@@ -45,13 +61,22 @@ function ViewAppointments() {
           </thead>
           <tbody>
             {appointments.map((ap, ind) => {
+              let status;
+              switch (ap.status) {
+                case "BOOKED":
+                  status = "table-warning";
+                  break;
+                case "COMPLETED":
+                  status = "table-success";
+                  break;
+                case "CANCELLED":
+                  status = "table-danger";
+                  break;
+                default:
+                  break;
+              }
               return (
-                <tr
-                  key={ind}
-                  className={`${
-                    ap.status === "BOOKED" ? "table-warning" : "table-success"
-                  }`}
-                >
+                <tr key={ind} className={status}>
                   <th scope="row">{ap.appointment_id}</th>
                   <td>{ap.name}</td>
                   <td>{ap.department_name}</td>

@@ -9,6 +9,8 @@ function DisplayDoctors() {
   const [specializations, setSpecializations] = useState([]);
   const [department, setDepartment] = useState("");
   const [specialization, setSpecialization] = useState("");
+  const [search, setSearch] = useState("");
+
   const getDoctors = () => {
     axios.get(API.admin.getDoctors).then(({ data }) => {
       if (!data.success) {
@@ -84,6 +86,21 @@ function DisplayDoctors() {
       });
   };
 
+  const getDoctor = (val) => {
+    axios.get(`${API.admin.getDoctorByName}/${val}`).then((res) => {
+      setDoctors(res.data.doctors);
+    });
+  };
+
+  const handleSearch = (val) => {
+    setSearch(val);
+    if (val.trim().length === 0) {
+      getDoctors();
+    } else {
+      getDoctor(val);
+    }
+  };
+
   return (
     <div className="container">
       <div className="d-flex justify-content-end mt-4">
@@ -92,6 +109,19 @@ function DisplayDoctors() {
         </Link>
       </div>
       <div className="d-flex align-items-end">
+        <div className="col-md-3 me-4">
+          <label htmlFor="inputState" className="form-label">
+            Name
+          </label>
+          <input
+            type="text"
+            className="form-control "
+            placeholder="Search name"
+            id="inputEmail4"
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
         <div className="col-md-3 me-4">
           <label htmlFor="inputState" className="form-label">
             Department

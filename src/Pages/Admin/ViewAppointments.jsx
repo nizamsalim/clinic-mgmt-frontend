@@ -31,16 +31,22 @@ function ViewAppointments() {
     });
   };
 
-  const handleSearch = (app_id) => {
-    setAppointmentNumber(app_id);
-    if (app_id.trim().length === 0) {
+  const getAppointment = (ap_id) => {
+    axios.get(`${API.admin.getAppointmentById}/${ap_id}`).then(({ data }) => {
+      if (!data.success) {
+        return alert(data.error);
+      }
+      setAppointments(data.appointments);
+    });
+  };
+
+  const handleSearch = (val) => {
+    setAppointmentNumber(val);
+    if (val.trim().length === 0) {
       getAppointments();
+    } else {
+      getAppointment(val);
     }
-    setAppointments(
-      appointments.filter(
-        (app) => app.appointmentDetails.appointment_id === Number(app_id)
-      )
-    );
   };
 
   const { generateToken } = useAuth();
@@ -69,14 +75,16 @@ function ViewAppointments() {
   return (
     <div className="container">
       <h3 className="text-center mt-3">All Appointments</h3>
-      <input
-        type="text"
-        className="form-control w-25 "
-        placeholder="Search appointment number"
-        id="inputEmail4"
-        value={appointmentNumber}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
+      <div className="d-flex">
+        <input
+          type="text"
+          className="form-control w-25 "
+          placeholder="Search appointment number"
+          id="inputEmail4"
+          value={appointmentNumber}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+      </div>
       {error !== "" ? (
         <h4 className="text-center">{error}</h4>
       ) : (
@@ -105,18 +113,27 @@ function ViewAppointments() {
               let a = ap.appointmentDetails;
               let d = ap.doctorDetails;
               let p = ap.patientDetails;
+              let status;
+              switch (a.status) {
+                case "BOOKED":
+                  status = "table-warning";
+                  break;
+                case "COMPLETED":
+                  status = "table-success";
+                  break;
+                case "CANCELLED":
+                  status = "table-danger";
+                  break;
+                default:
+                  break;
+              }
               return (
-                <tr
-                  key={ind}
-                  className={`${
-                    a.status === "BOOKED" ? "table-warning" : "table-success"
-                  }`}
-                >
+                <tr key={ind} className={status}>
                   <th scope="row">{a.appointment_id}</th>
                   <td>{new Date(a.date).toDateString()}</td>
                   <td>{a.start_time}</td>
                   <td>{a.end_time}</td>
-                  <td>{a.status}</td>
+                  <th scope="row">{a.status}</th>
                   <th scope="row">{d.name}</th>
                   <td>{d.phone}</td>
                   <td>{d.department_name}</td>

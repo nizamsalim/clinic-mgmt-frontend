@@ -19,6 +19,7 @@ import CreateAvailability from "./Pages/Doctor/CreateAvailability";
 import DeptSpec from "./Pages/Admin/DeptSpec";
 import ViewAppointmentsPatient from "./Pages/Patient/ViewAppointments";
 import ViewAppointmentsAdmin from "./Pages/Admin/ViewAppointments";
+import DisplayPatients from "./Pages/Admin/DisplayPatients";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute userRole={USER_ROLES.admin}>
             <DisplayDoctors />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.admin.getPatients,
+        element: (
+          <ProtectedRoute userRole={USER_ROLES.admin}>
+            <DisplayPatients />
           </ProtectedRoute>
         ),
       },
