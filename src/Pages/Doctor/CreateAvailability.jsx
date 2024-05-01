@@ -27,6 +27,9 @@ function CreateAvailability() {
           return alert(data.error);
         }
         setTimeslots(data.timeslots);
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
       });
   };
 
@@ -43,6 +46,9 @@ function CreateAvailability() {
         }
         setTimeslots(timeslots.filter((ts) => ts.timeslot_id !== ts_id));
         alert("Availability added");
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
       });
   };
 
@@ -59,9 +65,9 @@ function CreateAvailability() {
             onChange={handleDateChange}
           />
           <div className="d-flex align-items-center flex-column mt-3">
-            {timeslots.map((ts) => {
+            {timeslots.map((ts, ind) => {
               return (
-                <div>
+                <div key={ind}>
                   <button
                     className="btn btn-light mb-2"
                     onClick={(e) => handleAddAvailability(ts.timeslot_id)}

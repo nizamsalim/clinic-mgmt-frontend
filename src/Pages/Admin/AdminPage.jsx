@@ -16,14 +16,18 @@ function AdminPage() {
       name: "Appointments",
       route: ROUTES.admin.getAppointments,
     },
+    {
+      name: "Departments & Specializations",
+      route: ROUTES.admin.departmentsAndSpecializations,
+    },
   ];
   return (
     <div className="d-flex justify-content-center">
       <div className="d-flex flex-column" style={{ marginTop: "150px" }}>
         <h2 className="mb-4">Quick Links</h2>
-        {links.map((link) => {
+        {links.map((link, ind) => {
           return (
-            <Link className="btn btn-primary mb-2" to={link.route}>
+            <Link key={ind} className="btn btn-primary mb-2" to={link.route}>
               {link.name}
             </Link>
           );

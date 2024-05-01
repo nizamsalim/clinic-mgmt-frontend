@@ -21,6 +21,10 @@ function Navbar() {
         name: "Appointments",
         path: ROUTES.admin.getAppointments,
       },
+      {
+        name: "Departments & Specializations",
+        path: ROUTES.admin.departmentsAndSpecializations,
+      },
     ];
   } else if (user.userRole === USER_ROLES.doctor) {
     links = [
@@ -36,8 +40,12 @@ function Navbar() {
   } else if (user.userRole === USER_ROLES.patient) {
     links = [
       {
-        name: "Create appointment",
+        name: "Book appointments",
         path: ROUTES.patientHome,
+      },
+      {
+        name: "My appointments",
+        path: ROUTES.patient.getAppointments,
       },
     ];
   }
@@ -61,9 +69,9 @@ function Navbar() {
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              {links.map((link) => {
+              {links.map((link, ind) => {
                 return (
-                  <li className="nav-item">
+                  <li className="nav-item" key={ind}>
                     <Link
                       className="nav-link active"
                       aria-current="page"

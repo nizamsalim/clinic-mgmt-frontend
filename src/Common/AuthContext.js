@@ -10,6 +10,22 @@ export function AuthProvider({ children }) {
     }
     return null;
   });
+  const [token, setToken] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      return JSON.parse(token);
+    }
+    localStorage.setItem("token", JSON.stringify(1000));
+    return 1000;
+  });
+
+  const generateToken = () => {
+    let newToken = `T-${token}`;
+    setToken(token + 1);
+    localStorage.setItem("token", JSON.stringify(token + 1));
+    return newToken;
+  };
+
   const login = (username, userRole, authToken) => {
     setUser({ username, userRole });
     const data = JSON.stringify({ username, userRole });
@@ -22,7 +38,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("auth_token");
   };
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, generateToken }}>
       {children}
     </AuthContext.Provider>
   );

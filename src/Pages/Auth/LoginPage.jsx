@@ -3,7 +3,7 @@ import { useAuth } from "../../Common/AuthContext";
 import { API, ROUTES, USER_ROLES } from "../../Common/Constants";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ClipLoader } from "react-spinners";
+import Loader from "../../Components/Loader";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -34,15 +34,20 @@ function LoginPage() {
       redirect = ROUTES.doctorHome;
     }
 
-    axios.post(url, data).then(({ data }) => {
-      setIsLoading(false);
-      if (data.success) {
-        login(data.user.username, role, data.auth_token);
-        navigate(redirect, { replace: true });
-      } else {
-        alert(data.error);
-      }
-    });
+    axios
+      .post(url, data)
+      .then(({ data }) => {
+        setIsLoading(false);
+        if (data.success) {
+          login(data.user.username, role, data.auth_token);
+          navigate(redirect, { replace: true });
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
+      });
   };
 
   return (
@@ -133,11 +138,7 @@ function LoginPage() {
                   )
                 }
               >
-                {isLoading ? (
-                  <ClipLoader size={20} loading={isLoading} />
-                ) : (
-                  "Submit"
-                )}
+                <Loader isLoading={isLoading} label={"Login"} />
               </button>
               <Link to={ROUTES.signup}>Signup</Link>
             </div>

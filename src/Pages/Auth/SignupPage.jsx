@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { API, ROUTES, USER_ROLES } from "../../Common/Constants";
 import { useAuth } from "../../Common/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { ClipLoader } from "react-spinners";
+import Loader from "../../Components/Loader";
 
 // name: string;
 //   phone: string;
@@ -38,14 +38,19 @@ function SignupPage() {
       address,
       dob,
     };
-    axios.post(API.auth.patientSignup, data).then(({ data }) => {
-      setIsLoading(false);
-      if (!data.success) {
-        return alert(data.error);
-      }
-      login(data.user.username, USER_ROLES.patient, data.auth_token);
-      navigate(ROUTES.patientHome, { replace: true });
-    });
+    axios
+      .post(API.auth.patientSignup, data)
+      .then(({ data }) => {
+        setIsLoading(false);
+        if (!data.success) {
+          return alert(data.error);
+        }
+        login(data.user.username, USER_ROLES.patient, data.auth_token);
+        navigate(ROUTES.patientHome, { replace: true });
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
+      });
   };
 
   return (
@@ -145,11 +150,7 @@ function SignupPage() {
               !(name && phone && username && password && insuranceNumber && dob)
             }
           >
-            {isLoading ? (
-              <ClipLoader size={20} loading={isLoading} />
-            ) : (
-              "Signup"
-            )}
+            <Loader isLoading={isLoading} label={"Signup"} />
           </button>
           <Link to={ROUTES.login}>Login</Link>
         </div>

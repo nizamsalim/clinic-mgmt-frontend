@@ -16,6 +16,9 @@ import CreateDoctor from "./Pages/Admin/CreateDoctor";
 import DisplayAvailability from "./Pages/Doctor/DisplayAvailability";
 import DisplayAppointments from "./Pages/Doctor/DisplayAppointments";
 import CreateAvailability from "./Pages/Doctor/CreateAvailability";
+import DeptSpec from "./Pages/Admin/DeptSpec";
+import ViewAppointmentsPatient from "./Pages/Patient/ViewAppointments";
+import ViewAppointmentsAdmin from "./Pages/Admin/ViewAppointments";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -41,6 +44,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: ROUTES.admin.getAppointments,
+        element: (
+          <ProtectedRoute userRole={USER_ROLES.admin}>
+            <ViewAppointmentsAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: ROUTES.admin.createDoctor,
         element: (
           <ProtectedRoute userRole={USER_ROLES.admin}>
@@ -49,10 +60,26 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: ROUTES.admin.departmentsAndSpecializations,
+        element: (
+          <ProtectedRoute userRole={USER_ROLES.admin}>
+            <DeptSpec />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: ROUTES.patientHome,
         element: (
           <ProtectedRoute userRole={USER_ROLES.patient}>
             <PatientPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.patient.getAppointments,
+        element: (
+          <ProtectedRoute userRole={USER_ROLES.patient}>
+            <ViewAppointmentsPatient />
           </ProtectedRoute>
         ),
       },

@@ -2,19 +2,13 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 
-function DisplayAppointments() {
+function ViewAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState("");
-  const [selected, setSelected] = useState("all");
-  const getAge = (db) => {
-    const d = new Date();
-    const dob = new Date(db);
-    const age = d.getFullYear() - dob.getFullYear();
-    return age;
-  };
-  const getAppointments = () => {
+  const auth_token = localStorage.getItem("auth_token");
+  useEffect(() => {
     axios
-      .get(API.doctor.getMyAppointments, { headers: { auth_token } })
+      .get(API.patient.getMyAppointments, { headers: { auth_token } })
       .then(({ data }) => {
         if (data.success) {
           if (data.appointments.length === 0) {
@@ -23,53 +17,15 @@ function DisplayAppointments() {
           setAppointments(data.appointments);
         }
       });
-  };
-  const auth_token = localStorage.getItem("auth_token");
-  useEffect(() => {
-    getAppointments();
-    return () => {};
-  }, []);
 
-  const handleFilterChange = (val) => {
-    setSelected(val);
-    if (val === "all") {
-      getAppointments();
-    } else {
-      setAppointments(appointments.filter((app) => app.status === "BOOKED"));
-    }
-  };
+    return () => {};
+  }, [auth_token]);
+
+  const handleCancelAppointment = (ap_id) => {};
 
   return (
     <div className="container">
       <h3 className="text-center mt-3">My Appointments</h3>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="flexRadioDefault"
-          id="flexRadioDefault1"
-          value={"all"}
-          onClick={(e) => handleFilterChange("all")}
-          checked={selected === "all"}
-        />
-        <label class="form-check-label" for="flexRadioDefault1">
-          All
-        </label>
-      </div>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          value="booked"
-          checked={selected === "booked"}
-          name="flexRadioDefault"
-          id="flexRadioDefault2"
-          onClick={(e) => handleFilterChange("booked")}
-        />
-        <label class="form-check-label" for="flexRadioDefault2">
-          Booked
-        </label>
-      </div>
       {error !== "" ? (
         <h4 className="text-center">{error}</h4>
       ) : (
@@ -77,12 +33,14 @@ function DisplayAppointments() {
           <thead>
             <tr>
               <th scope="col">Appointment Number</th>
-              <th scope="col">Patient Name</th>
-              <th scope="col">Age</th>
+              <th scope="col">Doctor Name</th>
+              <th scope="col">Department</th>
+              <th scope="col">Specialization</th>
               <th scope="col">Date</th>
               <th scope="col">From</th>
               <th scope="col">To</th>
               <th scope="col">Status</th>
+              <th scope="col">Cancel</th>
             </tr>
           </thead>
           <tbody>
@@ -96,11 +54,26 @@ function DisplayAppointments() {
                 >
                   <th scope="row">{ap.appointment_id}</th>
                   <td>{ap.name}</td>
-                  <td>{getAge(ap.dob)}</td>
+                  <td>{ap.department_name}</td>
+                  <td>{ap.specialization_name}</td>
                   <td>{new Date(ap.date).toDateString()}</td>
                   <td>{ap.start_time}</td>
                   <td>{ap.end_time}</td>
                   <td>{ap.status}</td>
+                  <td>
+                    {ap.status === "BOOKED" ? (
+                      <button
+                        className="btn btn-danger"
+                        onClick={(e) =>
+                          handleCancelAppointment(ap.appointment_id)
+                        }
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <div></div>
+                    )}
+                  </td>
                 </tr>
               );
             })}
@@ -111,4 +84,4 @@ function DisplayAppointments() {
   );
 }
 
-export default DisplayAppointments;
+export default ViewAppointments;

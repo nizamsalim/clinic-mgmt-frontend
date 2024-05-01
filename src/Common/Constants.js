@@ -9,11 +9,15 @@ export const ROUTES = {
     createDoctor: "/admin/doctor/create",
     getAppointments: "/admin/appointments",
     getPatients: "/admin/patients",
+    departmentsAndSpecializations: "/admin/deptspec",
   },
   doctor: {
     getAppointments: "/doctor/appointments",
     getAvailability: "/doctor/availability",
     createAvailability: "/doctor/availability/create",
+  },
+  patient: {
+    getAppointments: "/patient/appointments",
   },
 };
 
@@ -42,7 +46,14 @@ export const API = {
     deleteDoctor: `${ADMIN_API}/doctor/delete`,
     getDoctors: `${ADMIN_API}/doctors/get`,
     getDepartments: `${ADMIN_API}/departments`,
+    getSpecializations: `${ADMIN_API}/specializations`,
     getSpecialization: `${ADMIN_API}/specialization`,
+    getDoctorsByDepartment: `${ADMIN_API}/doctors/d`,
+    getDoctorsBySpecialization: `${ADMIN_API}/doctors/s`,
+    createDepartment: `${ADMIN_API}/department/create`,
+    createSpecialization: `${ADMIN_API}/specialization/create`,
+    getAllAppointments: `${ADMIN_API}/appointments`,
+    generateToken: `${ADMIN_API}/token`,
   },
   doctor: {
     createAvailability: `${DOCTOR_API}/availability/create`,
@@ -53,5 +64,7 @@ export const API = {
   },
   patient: {
     createAppointment: `${PATIENT_API}/appointment/create`,
+    getAvailableDoctors: `${PATIENT_API}/availabledoctors`,
+    getMyAppointments: `${PATIENT_API}/appointments`,
   },
 };

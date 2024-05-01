@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { API, ROUTES } from "../../Common/Constants";
 import { useNavigate } from "react-router-dom";
-import { ClipLoader } from "react-spinners";
+import Loader from "../../Components/Loader";
 
 function CreateDoctor() {
   const navigate = useNavigate();
@@ -21,39 +21,52 @@ function CreateDoctor() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(API.admin.getDepartments).then(({ data }) => {
-      if (!data.success) {
-        alert(data.error);
-      }
-      setDepartments(data.departments);
-      setDepartmentId(data.departments[0].department_id);
-      // console.log(data.departments[0].department_id);
-      axios
-        .get(
-          `${API.admin.getSpecialization}/${data.departments[0].department_id}`
-        )
-        .then(({ data }) => {
-          if (!data.success) {
-            return alert(data.error);
-          }
-          setSpecializations(data.specializations);
-          setSpecializationId(data.specializations[0].specialization_id);
-        });
-    });
+    axios
+      .get(API.admin.getDepartments)
+      .then(({ data }) => {
+        if (!data.success) {
+          alert(data.error);
+        }
+        setDepartments(data.departments);
+        setDepartmentId(data.departments[0].department_id);
+        // console.log(data.departments[0].department_id);
+        axios
+          .get(
+            `${API.admin.getSpecialization}/${data.departments[0].department_id}`
+          )
+          .then(({ data }) => {
+            if (!data.success) {
+              return alert(data.error);
+            }
+            setSpecializations(data.specializations);
+            setSpecializationId(data.specializations[0].specialization_id);
+          })
+          .catch((err) => {
+            return alert("Something went wrong");
+          });
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
+      });
 
     return () => {};
   }, []);
 
   const handleDepartmentChange = (e) => {
     let dept_id = e.target.value;
-    console.log(dept_id);
     setDepartmentId(dept_id);
-    axios.get(`${API.admin.getSpecialization}/${dept_id}`).then(({ data }) => {
-      if (!data.success) {
-        return alert(data.error);
-      }
-      setSpecializations(data.specializations);
-    });
+    axios
+      .get(`${API.admin.getSpecialization}/${dept_id}`)
+      .then(({ data }) => {
+        if (!data.success) {
+          return alert(data.error);
+        }
+        setSpecializations(data.specializations);
+        setSpecializationId(data.specializations[0].specialization_id);
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
+      });
   };
 
   const handleCreateDoctorSubmit = (e) => {
@@ -69,15 +82,20 @@ function CreateDoctor() {
       department_id: departmentId,
       specialization_id: specializationId,
     };
-    console.log(data);
-    axios.post(API.admin.createDoctor, data).then(({ data }) => {
-      setIsLoading(true);
-      if (!data.success) {
-        alert(data.error);
-      } else {
-        navigate(ROUTES.admin.getDoctors);
-      }
-    });
+    // console.log(data);
+    axios
+      .post(API.admin.createDoctor, data)
+      .then(({ data }) => {
+        setIsLoading(false);
+        if (!data.success) {
+          alert(data.error);
+        } else {
+          navigate(ROUTES.admin.getDoctors);
+        }
+      })
+      .catch((err) => {
+        return alert("Something went wrong");
+      });
   };
 
   return (
@@ -166,9 +184,9 @@ function CreateDoctor() {
             className="form-select"
             onChange={handleDepartmentChange}
           >
-            {departments.map((dept) => {
+            {departments.map((dept, ind) => {
               return (
-                <option value={Number(dept.department_id)}>
+                <option value={Number(dept.department_id)} key={ind}>
                   {dept.department_name}
                 </option>
               );
@@ -184,13 +202,14 @@ function CreateDoctor() {
             className="form-select"
             onChange={(e) => setSpecializationId(e.target.value)}
           >
-            {specializations.map((spec) => {
-              return (
-                <option value={Number(spec.specialization_id)}>
-                  {spec.specialization_name}
-                </option>
-              );
-            })}
+            {specializations &&
+              specializations.map((spec, ind) => {
+                return (
+                  <option value={Number(spec.specialization_id)} key={ind}>
+                    {spec.specialization_name}
+                  </option>
+                );
+              })}
           </select>
         </div>
 
@@ -209,11 +228,7 @@ function CreateDoctor() {
               )
             }
           >
-            {isLoading ? (
-              <ClipLoader size={20} loading={isLoading} />
-            ) : (
-              "Submit"
-            )}
+            <Loader isLoading={isLoading} label={"Submit"} />
           </button>
         </div>
       </form>
