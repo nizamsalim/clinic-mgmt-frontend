@@ -4,11 +4,14 @@ import { useState } from "react";
 import { API, ROUTES } from "../../Common/Constants";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../Components/Loader";
+import { useAlert } from "../../Common/AlertContext";
 
 function CreateDoctor() {
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [specializations, setSpecializations] = useState([]);
+
+  const { showAlert } = useAlert();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,7 +28,7 @@ function CreateDoctor() {
       .get(API.admin.getDepartments)
       .then(({ data }) => {
         if (!data.success) {
-          alert(data.error);
+          showAlert(data.error);
         }
         setDepartments(data.departments);
         setDepartmentId(data.departments[0].department_id);
@@ -36,20 +39,21 @@ function CreateDoctor() {
           )
           .then(({ data }) => {
             if (!data.success) {
-              return alert(data.error);
+              return showAlert(data.error);
             }
             setSpecializations(data.specializations);
             setSpecializationId(data.specializations[0].specialization_id);
           })
           .catch((err) => {
-            return alert("Something went wrong");
+            return showAlert("Something went wrong");
           });
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
 
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDepartmentChange = (e) => {
@@ -59,13 +63,13 @@ function CreateDoctor() {
       .get(`${API.admin.getSpecialization}/${dept_id}`)
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setSpecializations(data.specializations);
         setSpecializationId(data.specializations[0].specialization_id);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -88,13 +92,13 @@ function CreateDoctor() {
       .then(({ data }) => {
         setIsLoading(false);
         if (!data.success) {
-          alert(data.error);
+          showAlert(data.error);
         } else {
           navigate(ROUTES.admin.getDoctors);
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -171,6 +175,7 @@ function CreateDoctor() {
             className="form-control"
             id="inputPassword4"
             value={licenseNumber}
+            maxLength={7}
             onChange={(e) => setLicenseNumber(e.target.value)}
           />
         </div>

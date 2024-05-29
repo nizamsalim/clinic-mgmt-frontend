@@ -4,8 +4,8 @@ function Alert({ message, type, isVisible }) {
   return (
     <div>
       {isVisible ? (
-        <div className={`alert alert-${type}`} role="alert">
-          {message}
+        <div className={`alert alert-${type} mt-3`} role="alert">
+          <strong>{message}</strong>
         </div>
       ) : (
         <div></div>

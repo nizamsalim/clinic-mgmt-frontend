@@ -2,25 +2,29 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { API, ROUTES } from "../../Common/Constants";
 import axios from "axios";
+import { useAlert } from "../../Common/AlertContext";
 
 function DisplayAvailability() {
   const [availabilities, setAvailabilities] = useState([]);
   const auth_token = localStorage.getItem("auth_token");
+  const { showAlert } = useAlert();
+
   useEffect(() => {
     axios
       .get(API.doctor.getMyAvailability, { headers: { auth_token } })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setAvailabilities(data.doctorAvailabilities);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
 
     return () => {};
-  }, [auth_token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = (da_id) => {
     axios
@@ -29,12 +33,13 @@ function DisplayAvailability() {
       })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setAvailabilities(
           availabilities.filter((av) => av.doctor_availability_id !== da_id)
         );
-      });
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
 
   return (
@@ -44,46 +49,56 @@ function DisplayAvailability() {
           Create Availability
         </Link>
       </div>
-      <h2 className="text-center mt-3">My Availability</h2>
-      <table className="table">
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Start time</th>
-            <th scope="col">Stop time</th>
-            <th scope="col">Status</th>
-            <th scope="col">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {availabilities.map((av, ind) => {
-            const d = new Date(av.da_date);
-            return (
-              <tr
-                key={ind}
-                className={`${av.status === "BOOKED" ? "table-danger" : ""}`}
-              >
-                <th scope="row">{d.toDateString()}</th>
-                <td>{av.start_time}</td>
-                <td>{av.end_time}</td>
-                <td>{av.status}</td>
-                {av.status !== "BOOKED" ? (
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      onClick={(e) => handleDelete(av.doctor_availability_id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                ) : (
-                  <td></td>
-                )}
+      {availabilities.length === 0 ? (
+        <h4 className="text-center">No records found</h4>
+      ) : (
+        <div>
+          <h2 className="text-center mt-3">My Availability</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Start time</th>
+                <th scope="col">Stop time</th>
+                <th scope="col">Status</th>
+                <th scope="col">Delete</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {availabilities.map((av, ind) => {
+                const d = new Date(av.da_date);
+                return (
+                  <tr
+                    key={ind}
+                    className={`${
+                      av.status === "BOOKED" ? "table-danger" : ""
+                    }`}
+                  >
+                    <th scope="row">{d.toDateString()}</th>
+                    <td>{av.start_time}</td>
+                    <td>{av.end_time}</td>
+                    <td>{av.status}</td>
+                    {av.status !== "BOOKED" ? (
+                      <td>
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) =>
+                            handleDelete(av.doctor_availability_id)
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    ) : (
+                      <td></td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

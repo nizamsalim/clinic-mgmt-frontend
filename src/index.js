@@ -20,6 +20,7 @@ import DeptSpec from "./Pages/Admin/DeptSpec";
 import ViewAppointmentsPatient from "./Pages/Patient/ViewAppointments";
 import ViewAppointmentsAdmin from "./Pages/Admin/ViewAppointments";
 import DisplayPatients from "./Pages/Admin/DisplayPatients";
+import { AlertProvider } from "./Common/AlertContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -146,8 +147,10 @@ const router = createBrowserRouter([
 
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <AlertProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </AlertProvider>
   </React.StrictMode>
 );

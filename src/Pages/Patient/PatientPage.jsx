@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API, ROUTES } from "../../Common/Constants";
 import { useNavigate } from "react-router-dom";
+import ModalComponent from "../../Components/ModalComponent";
+import { useAlert } from "../../Common/AlertContext";
 
 function PatientPage() {
   const [departments, setDepartments] = useState([]);
@@ -13,30 +15,45 @@ function PatientPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const { showAlert } = useAlert();
+
+  const [show, setShow] = useState(false);
+  const [modalBody, setModalBody] = useState("");
+
+  const handleClose = () => {
+    setShow(false);
+    navigate(ROUTES.patient.getAppointments);
+  };
+  const handleShow = () => setShow(true);
+
   useEffect(() => {
-    axios.get(API.admin.getDepartments).then(({ data }) => {
-      if (!data.success) {
-        alert(data.error);
-      }
-      setDepartments(data.departments);
-      setDepartmentId(data.departments[0].department_id);
-      axios
-        .get(
-          `${API.admin.getSpecialization}/${data.departments[0].department_id}`
-        )
-        .then(({ data }) => {
-          if (!data.success) {
-            return alert(data.error);
-          }
-          setSpecializations(data.specializations);
-          setSpecializationId(data.specializations[0].specialization_id);
-        })
-        .catch((err) => {
-          return alert("Something went wrong");
-        });
-    });
+    axios
+      .get(API.admin.getDepartments)
+      .then(({ data }) => {
+        if (!data.success) {
+          showAlert(data.error);
+        }
+        setDepartments(data.departments);
+        setDepartmentId(data.departments[0].department_id);
+        axios
+          .get(
+            `${API.admin.getSpecialization}/${data.departments[0].department_id}`
+          )
+          .then(({ data }) => {
+            if (!data.success) {
+              return showAlert(data.error);
+            }
+            setSpecializations(data.specializations);
+            setSpecializationId(data.specializations[0].specialization_id);
+          })
+          .catch((err) => {
+            return showAlert("Something went wrong");
+          });
+      })
+      .catch((err) => showAlert("Something went wrong"));
 
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDepartmentChange = (e) => {
@@ -46,13 +63,13 @@ function PatientPage() {
       .get(`${API.admin.getSpecialization}/${dept_id}`)
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setSpecializations(data.specializations);
         setSpecializationId(data.specializations[0].specialization_id);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -66,7 +83,7 @@ function PatientPage() {
       .post(API.patient.getAvailableDoctors, data, { headers: { auth_token } })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         if (data.doctors.length === 0) {
           setError("No doctors available");
@@ -74,7 +91,7 @@ function PatientPage() {
         setDoctors(data.doctors);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -90,25 +107,30 @@ function PatientPage() {
       .post(API.patient.createAppointment, data, { headers: { auth_token } })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
-        console.log(data.appointmentId);
-        alert(
+        setModalBody(
           `Please note appointment number for future reference - ${data.appointmentId}`
         );
+        handleShow();
 
         setDoctors(
           doctors.filter((doc) => doc.doctor_availability_id !== da_id)
         );
-        navigate(ROUTES.patient.getAppointments);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
   return (
     <div className="container">
+      <ModalComponent
+        body={modalBody}
+        handleClose={handleClose}
+        show={show}
+        title={"Appointment number"}
+      />
       <h3 className="text-center mt-3">Book Appointment</h3>
       <div className="row mt-4">
         <div className="col-md-3">
@@ -166,7 +188,7 @@ function PatientPage() {
               const selectedDate = new Date(e.target.value);
               const d = new Date();
               if (selectedDate < d) {
-                return alert("Select valid date");
+                return showAlert("Select valid date");
               }
               setDate(e.target.value);
             }}

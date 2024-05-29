@@ -2,11 +2,20 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 import { useAuth } from "../../Common/AuthContext";
+import { useAlert } from "../../Common/AlertContext";
+import ModalComponent from "../../Components/ModalComponent";
 
 function ViewAppointments() {
   const [appointments, setAppointments] = useState([]);
-  const [error, setError] = useState("");
   const [appointmentNumber, setAppointmentNumber] = useState("");
+
+  const { showAlert } = useAlert();
+
+  const [show, setShow] = useState(false);
+  const [modalBody, setModalBody] = useState("");
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
   const getAge = (db) => {
     const d = new Date();
@@ -18,63 +27,66 @@ function ViewAppointments() {
     getAppointments();
 
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getAppointments = () => {
-    axios.get(API.admin.getAllAppointments).then(({ data }) => {
-      if (data.success) {
-        if (data.appointments.length === 0) {
-          setError("No appointments");
+    axios
+      .get(API.admin.getAllAppointments)
+      .then(({ data }) => {
+        if (data.success) {
+          setAppointments(data.appointments);
         }
-        setAppointments(data.appointments);
-      }
-    });
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
 
   const getAppointment = (ap_id) => {
-    axios.get(`${API.admin.getAppointmentById}/${ap_id}`).then(({ data }) => {
-      if (!data.success) {
-        return alert(data.error);
-      }
-      setAppointments(data.appointments);
-    });
+    axios
+      .get(`${API.admin.getAppointmentById}/${ap_id}`)
+      .then(({ data }) => {
+        if (!data.success) {
+          return showAlert(data.error);
+        }
+        setAppointments(data.appointments);
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
 
-  const handleSearch = (val) => {
-    setAppointmentNumber(val);
-    if (val.trim().length === 0) {
-      getAppointments();
-    } else {
-      getAppointment(val);
-    }
+  const handleSearch = () => {
+    getAppointment(appointmentNumber);
   };
 
   const { generateToken } = useAuth();
 
-  //   const generateTokenNumber = () => {
-  //     let token = JSON.parse(localStorage.getItem("token"));
-  //     token++;
-  //     localStorage.setItem("token", JSON.stringify(token));
-  //   };
-
   const handleGenerateToken = (ap) => {
+    console.log(ap);
     const tokenNumber = generateToken();
     axios
       .post(API.admin.generateToken, {
-        appointment_id: ap.appointmentDetails.appointment_id,
+        appointment_id: ap.appointmentDetails[0].appointment_id,
       })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
-        alert(`Token number - ${tokenNumber}`);
+        setModalBody(`Token number : ${tokenNumber}`);
+        handleShow();
         getAppointments();
-      });
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
 
   return (
     <div className="container">
-      <h3 className="text-center mt-3">All Appointments</h3>
+      <ModalComponent
+        body={modalBody}
+        title={"Token number"}
+        handleClose={handleClose}
+        handleShow={handleShow}
+        show={show}
+      />
+      <h2 className="text-center mt-3">Appointments</h2>
       <div className="d-flex">
         <input
           type="text"
@@ -82,11 +94,20 @@ function ViewAppointments() {
           placeholder="Search appointment number"
           id="inputEmail4"
           value={appointmentNumber}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => {
+            setAppointmentNumber(e.target.value);
+            if (e.target.value.trim().length === 0) {
+              getAppointments();
+              return;
+            }
+          }}
         />
+        <button className="btn btn-success ms-3" onClick={handleSearch}>
+          Search
+        </button>
       </div>
-      {error !== "" ? (
-        <h4 className="text-center">{error}</h4>
+      {appointments.length === 0 ? (
+        <h4 className="text-center">No appointment records</h4>
       ) : (
         <table className="table">
           <thead>
@@ -110,9 +131,9 @@ function ViewAppointments() {
           </thead>
           <tbody>
             {appointments.map((ap, ind) => {
-              let a = ap.appointmentDetails;
-              let d = ap.doctorDetails;
-              let p = ap.patientDetails;
+              let a = ap.appointmentDetails[0];
+              let d = ap.doctorDetails[0];
+              let p = ap.patientDetails[0];
               let status;
               switch (a.status) {
                 case "BOOKED":

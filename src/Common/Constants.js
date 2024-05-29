@@ -73,3 +73,8 @@ export const API = {
     cancelAppointment: `${PATIENT_API}/appointment`,
   },
 };
+
+export const AlertData = {
+  type: "",
+  message: "",
+};

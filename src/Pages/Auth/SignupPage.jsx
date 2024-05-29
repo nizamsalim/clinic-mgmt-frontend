@@ -4,6 +4,8 @@ import { API, ROUTES, USER_ROLES } from "../../Common/Constants";
 import { useAuth } from "../../Common/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../../Components/Loader";
+import Alert from "../../Components/Alert";
+import { useAlert } from "../../Common/AlertContext";
 
 // name: string;
 //   phone: string;
@@ -22,6 +24,8 @@ function SignupPage() {
   const [address, setAddress] = useState("");
   const [dob, setDob] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const { alert, isAlertVisible, showAlert } = useAlert();
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -43,18 +47,23 @@ function SignupPage() {
       .then(({ data }) => {
         setIsLoading(false);
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         login(data.user.username, USER_ROLES.patient, data.auth_token);
         navigate(ROUTES.patientHome, { replace: true });
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
   return (
     <div className="container w-25 mt-5">
+      <Alert
+        isVisible={isAlertVisible}
+        message={alert.message}
+        type={alert.type}
+      />
       <h2 className="text-center mb-3">Signup</h2>
       <form className="row g-3" onSubmit={handleSignup}>
         <div className="col-md-12">
@@ -114,6 +123,7 @@ function SignupPage() {
             className="form-control"
             id="inputEmail4"
             value={insuranceNumber}
+            maxLength={7}
             onChange={(e) => setInsuranceNumber(e.target.value)}
           />
         </div>

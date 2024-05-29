@@ -1,11 +1,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
+import { useAlert } from "../../Common/AlertContext";
 
 function DisplayAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState("all");
+  const { showAlert } = useAlert();
   const getAge = (db) => {
     const d = new Date();
     const dob = new Date(db);
@@ -22,12 +24,14 @@ function DisplayAppointments() {
           }
           setAppointments(data.appointments);
         }
-      });
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
   const auth_token = localStorage.getItem("auth_token");
   useEffect(() => {
     getAppointments();
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilterChange = (val) => {

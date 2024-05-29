@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { API } from "../../Common/Constants";
 import axios from "axios";
+import { useAlert } from "../../Common/AlertContext";
 
 function CreateAvailability() {
   const [date, setDate] = useState("");
   const [timeslots, setTimeslots] = useState([]);
   const auth_token = localStorage.getItem("auth_token");
+  const { showAlert } = useAlert();
   const handleDateChange = (e) => {
     e.preventDefault();
     setDate(e.target.value);
@@ -14,7 +16,7 @@ function CreateAvailability() {
     const d = new Date();
     if (selectedDate < d) {
       setTimeslots([]);
-      return alert("Select valid date");
+      return showAlert("Select valid date");
     }
     axios
       .post(
@@ -24,12 +26,12 @@ function CreateAvailability() {
       )
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setTimeslots(data.timeslots);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -42,13 +44,13 @@ function CreateAvailability() {
       )
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setTimeslots(timeslots.filter((ts) => ts.timeslot_id !== ts_id));
-        alert("Availability added");
+        showAlert("Availability added");
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 

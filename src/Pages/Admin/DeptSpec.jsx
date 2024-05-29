@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 import Loader from "../../Components/Loader";
+import { useAlert } from "../../Common/AlertContext";
 
 function DeptSpec() {
   const [departments, setDepartments] = useState([]);
@@ -13,6 +14,8 @@ function DeptSpec() {
   const [isSpecLoading, setIsSpecLoading] = useState(false);
   //   const [departmentFilter, setDepartmentFilter] = useState("")
 
+  const { showAlert } = useAlert();
+
   const populateDepartments = () => {
     axios
       .get(API.admin.getDepartments)
@@ -23,7 +26,7 @@ function DeptSpec() {
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -36,7 +39,7 @@ function DeptSpec() {
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -44,6 +47,7 @@ function DeptSpec() {
     populateDepartments();
     populateSpecializations();
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createDepartment = (e) => {
@@ -53,7 +57,7 @@ function DeptSpec() {
       .post(API.admin.createDepartment, { department_name: department })
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setIsDeptLoading(false);
         if (data.success) {
@@ -62,17 +66,13 @@ function DeptSpec() {
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
   const createSpecialization = (e) => {
     e.preventDefault();
     setIsSpecLoading(true);
-    console.log({
-      specialization_name: specialization,
-      department_id: departmentId,
-    });
     axios
       .post(API.admin.createSpecialization, {
         specialization_name: specialization,
@@ -86,7 +86,7 @@ function DeptSpec() {
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -97,12 +97,12 @@ function DeptSpec() {
       .get(`${API.admin.getSpecialization}/${dept_id}`)
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         setSpecializations(data.specializations);
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
   return (
@@ -118,7 +118,11 @@ function DeptSpec() {
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
           />
-          <button className="btn btn-success ms-3" onClick={createDepartment}>
+          <button
+            className="btn btn-success ms-3"
+            onClick={createDepartment}
+            disabled={department.trim().length === 0}
+          >
             <Loader isLoading={isDeptLoading} label={"Submit"} />
           </button>
         </div>
@@ -168,6 +172,7 @@ function DeptSpec() {
           <button
             className="btn btn-success ms-3"
             onClick={createSpecialization}
+            disabled={specialization.trim().length === 0}
           >
             <Loader isLoading={isSpecLoading} label={"Submit"} />
           </button>

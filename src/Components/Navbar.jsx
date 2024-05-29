@@ -2,9 +2,12 @@ import React from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../Common/AuthContext";
 import { ROUTES, USER_ROLES } from "../Common/Constants";
+import Alert from "./Alert";
+import { useAlert } from "../Common/AlertContext";
 
 function Navbar() {
   const { logout, user } = useAuth();
+  const { alert, isAlertVisible } = useAlert();
   const navigate = useNavigate();
   let links;
   if (user.userRole === USER_ROLES.admin) {
@@ -98,6 +101,11 @@ function Navbar() {
           </div>
         </div>
       </nav>
+      <Alert
+        message={alert.message}
+        type={alert.type}
+        isVisible={isAlertVisible}
+      />
       <div className="detail">
         <Outlet />
       </div>

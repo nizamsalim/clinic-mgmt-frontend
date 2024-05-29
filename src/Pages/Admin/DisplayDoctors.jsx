@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { API, ROUTES } from "../../Common/Constants";
 import { Link } from "react-router-dom";
+import { useAlert } from "../../Common/AlertContext";
+import { Button, Modal } from "react-bootstrap";
 
 function DisplayDoctors() {
   const [departments, setDepartments] = useState([]);
@@ -10,54 +12,71 @@ function DisplayDoctors() {
   const [department, setDepartment] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [search, setSearch] = useState("");
+  const [flaggedDoctor, setFlaggedDoctor] = useState({
+    name: "",
+    doctor_id: "",
+  });
+
+  const { showAlert } = useAlert();
 
   const getDoctors = () => {
-    axios.get(API.admin.getDoctors).then(({ data }) => {
-      if (!data.success) {
-        return alert(data.error);
-      }
-      setDoctors(data.doctors);
-    });
+    axios
+      .get(API.admin.getDoctors)
+      .then(({ data }) => {
+        if (!data.success) {
+          return showAlert(data.error);
+        }
+        setDoctors(data.doctors);
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
   const initialPopulate = () => {
-    axios.get(API.admin.getDepartments).then(({ data }) => {
-      if (data.success) {
-        setDepartments(data.departments);
-        axios
-          .get(API.admin.getSpecializations)
-          .then(({ data }) => {
-            if (data.success) {
-              setSpecializations(data.specializations);
-            }
-          })
-          .catch((err) => {
-            return alert("Something went wrong");
-          });
-      }
-    });
+    axios
+      .get(API.admin.getDepartments)
+      .then(({ data }) => {
+        if (data.success) {
+          setDepartments(data.departments);
+          axios
+            .get(API.admin.getSpecializations)
+            .then(({ data }) => {
+              if (data.success) {
+                setSpecializations(data.specializations);
+              }
+            })
+            .catch((err) => showAlert("Something went wrong"));
+        }
+      })
+      .catch((err) => {
+        return showAlert("Something went wrong");
+      });
   };
   const [doctors, setDoctors] = useState([]);
   useEffect(() => {
     getDoctors();
     initialPopulate();
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDelete = (user_id) => {
+  const handleDelete = (e) => {
+    e.preventDefault();
     axios
-      .post(API.admin.deleteDoctor, { user_id })
+      .delete(`${API.admin.deleteDoctor}/${flaggedDoctor.doctor_id}`)
       .then(({ data }) => {
         if (!data.success) {
-          return alert(data.error);
+          return showAlert(data.error);
         }
         getDoctors();
+        handleClose();
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        handleClose();
+        return showAlert("Something went wrong");
       });
   };
 
   const handleDepartmentChange = (e) => {
+    console.log(e.target.value);
     setDepartment(e.target.value);
     axios
       .get(`${API.admin.getDoctorsByDepartment}/${e.target.value}`)
@@ -65,10 +84,12 @@ function DisplayDoctors() {
         console.log(data);
         if (data.success) {
           setDoctors(data.doctors);
+        } else {
+          showAlert(data.error);
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
@@ -79,17 +100,22 @@ function DisplayDoctors() {
       .then(({ data }) => {
         if (data.success) {
           setDoctors(data.doctors);
+        } else {
+          showAlert(data.error);
         }
       })
       .catch((err) => {
-        return alert("Something went wrong");
+        return showAlert("Something went wrong");
       });
   };
 
   const getDoctor = (val) => {
-    axios.get(`${API.admin.getDoctorByName}/${val}`).then((res) => {
-      setDoctors(res.data.doctors);
-    });
+    axios
+      .get(`${API.admin.getDoctorByName}/${val}`)
+      .then((res) => {
+        setDoctors(res.data.doctors);
+      })
+      .catch((err) => showAlert("Something went wrong"));
   };
 
   const handleSearch = (val) => {
@@ -101,8 +127,42 @@ function DisplayDoctors() {
     }
   };
 
+  const clearFilters = (e) => {
+    e.preventDefault();
+    setSpecialization(1);
+    setDepartment(1);
+    getDoctors();
+  };
+
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   return (
     <div className="container">
+      <Modal
+        show={show}
+        onHide={handleClose}
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Doctor</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the record of{" "}
+          <strong>{flaggedDoctor.name}</strong>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div className="d-flex justify-content-end mt-4">
         <Link to={ROUTES.admin.createDoctor} className="btn btn-success">
           Create Doctor
@@ -161,54 +221,64 @@ function DisplayDoctors() {
           </select>
         </div>
         <div className="col-md-3 ms-3">
-          <button className="btn btn-light" onClick={(e) => getDoctors()}>
+          <button className="btn btn-light" onClick={clearFilters}>
             Clear filters
           </button>
         </div>
       </div>
-      <h2 className="text-center mt-3">Doctors</h2>
-      <table className="table">
-        <thead>
-          <tr>
-            <th scope="col">User ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Phone</th>
-            <th scope="col">License Number</th>
-            <th scope="col">Salary</th>
-            <th scope="col">Department</th>
-            <th scope="col">Specialization</th>
-            <th scope="col">Update</th>
-            <th scope="col">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          {doctors.map((doctor, ind) => {
-            return (
-              <tr key={ind}>
-                <th scope="row">{doctor.user_id}</th>
-                <td>{doctor.name}</td>
-                <td>{doctor.phone}</td>
-                <td>{doctor.license_number}</td>
-                <td>{doctor.salary}</td>
-                <td>{doctor.department_name}</td>
-                <td>{doctor.specialization_name}</td>
-                <td>
-                  {" "}
-                  <button className="btn btn-warning">Update</button>{" "}
-                </td>
-                <td>
-                  <button
-                    className="btn btn-danger"
-                    onClick={(e) => handleDelete(doctor.user_id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+      {doctors.length === 0 ? (
+        <h4 className="text-center mt-3">No Doctors found</h4>
+      ) : (
+        <div>
+          <h2 className="text-center mt-3">Doctors</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">User ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Phone</th>
+                <th scope="col">License Number</th>
+                <th scope="col">Salary</th>
+                <th scope="col">Department</th>
+                <th scope="col">Specialization</th>
+                <th scope="col">Delete</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {doctors.map((doctor, ind) => {
+                return (
+                  <tr key={ind}>
+                    <th scope="row">{doctor.user_id}</th>
+                    <td>{doctor.name}</td>
+                    <td>{doctor.phone}</td>
+                    <td>{doctor.license_number}</td>
+                    <td>{doctor.salary}</td>
+                    <td>{doctor.department_name}</td>
+                    <td>{doctor.specialization_name}</td>
+                    <td>
+                      <button
+                        className="btn btn-danger ms-2"
+                        onClick={(e) => {
+                          handleShow();
+                          setFlaggedDoctor({
+                            name: doctor.name,
+                            doctor_id: doctor.user_id,
+                          });
+                        }}
+                      >
+                        <i
+                          className="fa-solid fa-trash"
+                          style={{ color: "white" }}
+                        ></i>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
