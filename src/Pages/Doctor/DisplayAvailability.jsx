@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { API, ROUTES } from "../../Common/Constants";
 import axios from "axios";
 import { useAlert } from "../../Common/AlertContext";
-import { ClipLoader } from "react-spinners";
 import DataLoader from "../../Components/DataLoader";
 
 function DisplayAvailability() {
