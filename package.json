@@ -1,6 +1,5 @@
 {
   "name": "frontend",
-  "homepage": "https://clinic-mgmt.netlify.app/auth/login",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
