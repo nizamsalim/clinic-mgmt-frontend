@@ -4,10 +4,14 @@ import { API } from "../../Common/Constants";
 import { useAuth } from "../../Common/AuthContext";
 import { useAlert } from "../../Common/AlertContext";
 import ModalComponent from "../../Components/ModalComponent";
+import DataLoader from "../../Components/DataLoader";
 
 function ViewAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [appointmentNumber, setAppointmentNumber] = useState("");
+
+  const [error, setError] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const { showAlert } = useAlert();
 
@@ -31,14 +35,22 @@ function ViewAppointments() {
   }, []);
 
   const getAppointments = () => {
+    setIsFetchingData(true);
     axios
       .get(API.admin.getAllAppointments)
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (data.success) {
+          if (data.appointments.length === 0) {
+            setError("No appointments found");
+          }
           setAppointments(data.appointments);
         }
       })
-      .catch((err) => showAlert("Something went wrong"));
+      .catch((err) => {
+        setIsFetchingData(false);
+        showAlert("Something went wrong");
+      });
   };
 
   const getAppointment = (ap_id) => {
@@ -60,7 +72,6 @@ function ViewAppointments() {
   const { generateToken } = useAuth();
 
   const handleGenerateToken = (ap) => {
-    console.log(ap);
     const tokenNumber = generateToken();
     axios
       .post(API.admin.generateToken, {
@@ -106,8 +117,9 @@ function ViewAppointments() {
           Search
         </button>
       </div>
+      <DataLoader isFetchingData={isFetchingData} />
       {appointments.length === 0 ? (
-        <h4 className="text-center">No appointment records</h4>
+        <h4 className="text-center">{error}</h4>
       ) : (
         <table className="table">
           <thead>

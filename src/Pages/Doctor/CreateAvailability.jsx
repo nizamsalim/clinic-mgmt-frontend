@@ -2,22 +2,26 @@ import React, { useState } from "react";
 import { API } from "../../Common/Constants";
 import axios from "axios";
 import { useAlert } from "../../Common/AlertContext";
+import DataLoader from "../../Components/DataLoader";
 
 function CreateAvailability() {
   const [date, setDate] = useState("");
   const [timeslots, setTimeslots] = useState([]);
+  const [isFetchingData, setisFetchingData] = useState(false);
   const auth_token = localStorage.getItem("auth_token");
   const { showAlert } = useAlert();
   const handleDateChange = (e) => {
     e.preventDefault();
+
     setDate(e.target.value);
-    // console.log(e.target.value);
     const selectedDate = new Date(e.target.value);
     const d = new Date();
     if (selectedDate < d) {
       setTimeslots([]);
       return showAlert("Select valid date");
     }
+    setTimeslots([]);
+    setisFetchingData(true);
     axios
       .post(
         API.doctor.getTimeSlotsByDate,
@@ -25,12 +29,14 @@ function CreateAvailability() {
         { headers: { auth_token } }
       )
       .then(({ data }) => {
+        setisFetchingData(false);
         if (!data.success) {
           return showAlert(data.error);
         }
         setTimeslots(data.timeslots);
       })
       .catch((err) => {
+        setisFetchingData(false);
         return showAlert("Something went wrong");
       });
   };
@@ -67,6 +73,7 @@ function CreateAvailability() {
             onChange={handleDateChange}
           />
           <div className="d-flex align-items-center flex-column mt-3">
+            <DataLoader isFetchingData={isFetchingData} />
             {timeslots.map((ts, ind) => {
               return (
                 <div key={ind}>

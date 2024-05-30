@@ -4,6 +4,7 @@ import { API, ROUTES } from "../../Common/Constants";
 import { useNavigate } from "react-router-dom";
 import ModalComponent from "../../Components/ModalComponent";
 import { useAlert } from "../../Common/AlertContext";
+import DataLoader from "../../Components/DataLoader";
 
 function PatientPage() {
   const [departments, setDepartments] = useState([]);
@@ -13,6 +14,7 @@ function PatientPage() {
   const [date, setDate] = useState("");
   const [doctors, setDoctors] = useState([]);
   const [error, setError] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
   const navigate = useNavigate();
 
   const { showAlert } = useAlert();
@@ -27,6 +29,7 @@ function PatientPage() {
   const handleShow = () => setShow(true);
 
   useEffect(() => {
+    setIsFetchingData(true);
     axios
       .get(API.admin.getDepartments)
       .then(({ data }) => {
@@ -45,12 +48,17 @@ function PatientPage() {
             }
             setSpecializations(data.specializations);
             setSpecializationId(data.specializations[0].specialization_id);
+            setIsFetchingData(false);
           })
           .catch((err) => {
+            setIsFetchingData(false);
             return showAlert("Something went wrong");
           });
       })
-      .catch((err) => showAlert("Something went wrong"));
+      .catch((err) => {
+        setIsFetchingData(false);
+        showAlert("Something went wrong");
+      });
 
     return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,6 +82,8 @@ function PatientPage() {
   };
 
   const getAvailableDoctors = () => {
+    setDoctors([]);
+    setIsFetchingData(true);
     const data = {
       department_id: departmentId,
       specialization_id: specializationId,
@@ -82,6 +92,7 @@ function PatientPage() {
     axios
       .post(API.patient.getAvailableDoctors, data, { headers: { auth_token } })
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (!data.success) {
           return showAlert(data.error);
         }
@@ -91,6 +102,7 @@ function PatientPage() {
         setDoctors(data.doctors);
       })
       .catch((err) => {
+        setIsFetchingData(false);
         return showAlert("Something went wrong");
       });
   };
@@ -205,6 +217,7 @@ function PatientPage() {
           </button>
         </div>
       </div>
+      <DataLoader isFetchingData={isFetchingData} />
       {doctors.length !== 0 ? (
         <table className="table mt-4">
           <thead>
@@ -247,7 +260,7 @@ function PatientPage() {
           </tbody>
         </table>
       ) : (
-        <h3 className="text-center mt-3">{error}</h3>
+        <h4 className="text-center mt-3">{error}</h4>
       )}
     </div>
   );

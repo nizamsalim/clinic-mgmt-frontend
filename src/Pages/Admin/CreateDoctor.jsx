@@ -32,7 +32,6 @@ function CreateDoctor() {
         }
         setDepartments(data.departments);
         setDepartmentId(data.departments[0].department_id);
-        // console.log(data.departments[0].department_id);
         axios
           .get(
             `${API.admin.getSpecialization}/${data.departments[0].department_id}`
@@ -86,7 +85,6 @@ function CreateDoctor() {
       department_id: departmentId,
       specialization_id: specializationId,
     };
-    // console.log(data);
     axios
       .post(API.admin.createDoctor, data)
       .then(({ data }) => {

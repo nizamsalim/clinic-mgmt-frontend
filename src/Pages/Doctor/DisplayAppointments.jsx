@@ -2,10 +2,12 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 import { useAlert } from "../../Common/AlertContext";
+import DataLoader from "../../Components/DataLoader";
 
 function DisplayAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
   const [selected, setSelected] = useState("all");
   const { showAlert } = useAlert();
   const getAge = (db) => {
@@ -15,9 +17,11 @@ function DisplayAppointments() {
     return age;
   };
   const getAppointments = () => {
+    setIsFetchingData(true);
     axios
       .get(API.doctor.getMyAppointments, { headers: { auth_token } })
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (data.success) {
           if (data.appointments.length === 0) {
             setError("You have no upcoming appointments");
@@ -25,7 +29,10 @@ function DisplayAppointments() {
           setAppointments(data.appointments);
         }
       })
-      .catch((err) => showAlert("Something went wrong"));
+      .catch((err) => {
+        setIsFetchingData(false);
+        showAlert("Something went wrong");
+      });
   };
   const auth_token = localStorage.getItem("auth_token");
   useEffect(() => {
@@ -37,6 +44,7 @@ function DisplayAppointments() {
   const handleFilterChange = (val) => {
     setSelected(val);
     if (val === "all") {
+      setAppointments([]);
       getAppointments();
     } else {
       setAppointments(appointments.filter((app) => app.status === "BOOKED"));
@@ -45,8 +53,7 @@ function DisplayAppointments() {
 
   return (
     <div className="container">
-      <h3 className="text-center mt-3">My Appointments</h3>
-      <div class="form-check">
+      <div class="form-check mt-4">
         <input
           class="form-check-input"
           type="radio"
@@ -74,51 +81,56 @@ function DisplayAppointments() {
           Booked
         </label>
       </div>
-      {error !== "" ? (
+      <DataLoader isFetchingData={isFetchingData} />
+      {appointments.length === 0 ? (
         <h4 className="text-center">{error}</h4>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Appointment Number</th>
-              <th scope="col">Patient Name</th>
-              <th scope="col">Age</th>
-              <th scope="col">Date</th>
-              <th scope="col">From</th>
-              <th scope="col">To</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((ap, ind) => {
-              let status;
-              switch (ap.status) {
-                case "BOOKED":
-                  status = "table-warning";
-                  break;
-                case "COMPLETED":
-                  status = "table-success";
-                  break;
-                case "CANCELLED":
-                  status = "table-danger";
-                  break;
-                default:
-                  break;
-              }
-              return (
-                <tr key={ind} className={status}>
-                  <th scope="row">{ap.appointment_id}</th>
-                  <td>{ap.name}</td>
-                  <td>{getAge(ap.dob)}</td>
-                  <td>{new Date(ap.date).toDateString()}</td>
-                  <td>{ap.start_time}</td>
-                  <td>{ap.end_time}</td>
-                  <td>{ap.status}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div>
+          <h3 className="text-center mt-3">My Appointments</h3>
+
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Appointment Number</th>
+                <th scope="col">Patient Name</th>
+                <th scope="col">Age</th>
+                <th scope="col">Date</th>
+                <th scope="col">From</th>
+                <th scope="col">To</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map((ap, ind) => {
+                let status;
+                switch (ap.status) {
+                  case "BOOKED":
+                    status = "table-warning";
+                    break;
+                  case "COMPLETED":
+                    status = "table-success";
+                    break;
+                  case "CANCELLED":
+                    status = "table-danger";
+                    break;
+                  default:
+                    break;
+                }
+                return (
+                  <tr key={ind} className={status}>
+                    <th scope="row">{ap.appointment_id}</th>
+                    <td>{ap.name}</td>
+                    <td>{getAge(ap.dob)}</td>
+                    <td>{new Date(ap.date).toDateString()}</td>
+                    <td>{ap.start_time}</td>
+                    <td>{ap.end_time}</td>
+                    <td>{ap.status}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

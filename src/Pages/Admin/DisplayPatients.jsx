@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 import axios from "axios";
 import { useAlert } from "../../Common/AlertContext";
+import DataLoader from "../../Components/DataLoader";
 
 function DisplayPatients() {
   const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState("");
   const { showAlert } = useAlert();
+
+  const [error, setError] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const getAge = (db) => {
     const d = new Date();
@@ -16,12 +20,20 @@ function DisplayPatients() {
   };
 
   const getAllPatients = () => {
+    setIsFetchingData(true);
     axios
       .get(API.admin.getAllPatients)
       .then(({ data }) => {
+        setIsFetchingData(false);
+        if (data.patients.length === 0) {
+          setError("No patients found");
+        }
         setPatients(data.patients);
       })
-      .catch((err) => showAlert("Something went wrong"));
+      .catch((err) => {
+        setIsFetchingData(false);
+        showAlert("Something went wrong");
+      });
   };
 
   useEffect(() => {
@@ -42,6 +54,7 @@ function DisplayPatients() {
   const handleSearch = (val) => {
     setSearch(val);
     if (val.trim().length === 0) {
+      setPatients([]);
       getAllPatients();
     } else {
       getPatient(val);
@@ -60,8 +73,9 @@ function DisplayPatients() {
           onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
+      <DataLoader isFetchingData={isFetchingData} />
       {patients.length === 0 ? (
-        <h4 className="text-center mt-3">No patients found</h4>
+        <h4 className="text-center mt-3">{error}</h4>
       ) : (
         <div>
           <h2 className="text-center mt-3">Patients</h2>

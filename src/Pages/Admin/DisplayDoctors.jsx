@@ -5,6 +5,7 @@ import { API, ROUTES } from "../../Common/Constants";
 import { Link } from "react-router-dom";
 import { useAlert } from "../../Common/AlertContext";
 import { Button, Modal } from "react-bootstrap";
+import DataLoader from "../../Components/DataLoader";
 
 function DisplayDoctors() {
   const [departments, setDepartments] = useState([]);
@@ -16,19 +17,29 @@ function DisplayDoctors() {
     name: "",
     doctor_id: "",
   });
+  const [error, setError] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const { showAlert } = useAlert();
 
   const getDoctors = () => {
+    setIsFetchingData(true);
     axios
       .get(API.admin.getDoctors)
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (!data.success) {
           return showAlert(data.error);
         }
+        if (data.doctors.length === 0) {
+          setError("No doctors found");
+        }
         setDoctors(data.doctors);
       })
-      .catch((err) => showAlert("Something went wrong"));
+      .catch((err) => {
+        setIsFetchingData(false);
+        showAlert("Something went wrong");
+      });
   };
   const initialPopulate = () => {
     axios
@@ -76,13 +87,14 @@ function DisplayDoctors() {
   };
 
   const handleDepartmentChange = (e) => {
-    console.log(e.target.value);
     setDepartment(e.target.value);
     axios
       .get(`${API.admin.getDoctorsByDepartment}/${e.target.value}`)
       .then(({ data }) => {
-        console.log(data);
         if (data.success) {
+          if (data.doctors.length === 0) {
+            setError("No doctors found");
+          }
           setDoctors(data.doctors);
         } else {
           showAlert(data.error);
@@ -99,6 +111,9 @@ function DisplayDoctors() {
       .get(`${API.admin.getDoctorsBySpecialization}/${e.target.value}`)
       .then(({ data }) => {
         if (data.success) {
+          if (data.doctors.length === 0) {
+            setError("No doctors found");
+          }
           setDoctors(data.doctors);
         } else {
           showAlert(data.error);
@@ -129,6 +144,7 @@ function DisplayDoctors() {
 
   const clearFilters = (e) => {
     e.preventDefault();
+    setError("");
     setSpecialization(1);
     setDepartment(1);
     getDoctors();
@@ -226,11 +242,12 @@ function DisplayDoctors() {
           </button>
         </div>
       </div>
+      <DataLoader isFetchingData={isFetchingData} />
       {doctors.length === 0 ? (
-        <h4 className="text-center mt-3">No Doctors found</h4>
+        <h4 className="text-center mt-3">{error}</h4>
       ) : (
         <div>
-          <h2 className="text-center mt-3">Doctors</h2>
+          <h3 className="text-center mt-3">Doctors</h3>
           <table className="table">
             <thead>
               <tr>

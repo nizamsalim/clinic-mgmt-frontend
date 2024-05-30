@@ -3,22 +3,32 @@ import { Link } from "react-router-dom";
 import { API, ROUTES } from "../../Common/Constants";
 import axios from "axios";
 import { useAlert } from "../../Common/AlertContext";
+import { ClipLoader } from "react-spinners";
+import DataLoader from "../../Components/DataLoader";
 
 function DisplayAvailability() {
   const [availabilities, setAvailabilities] = useState([]);
   const auth_token = localStorage.getItem("auth_token");
   const { showAlert } = useAlert();
+  const [isFetchingData, setIsFetchingData] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    setIsFetchingData(true);
     axios
       .get(API.doctor.getMyAvailability, { headers: { auth_token } })
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (!data.success) {
           return showAlert(data.error);
+        }
+        if (data.doctorAvailabilities.length === 0) {
+          setError("No records found");
         }
         setAvailabilities(data.doctorAvailabilities);
       })
       .catch((err) => {
+        setIsFetchingData(false);
         return showAlert("Something went wrong");
       });
 
@@ -49,8 +59,9 @@ function DisplayAvailability() {
           Create Availability
         </Link>
       </div>
+      <DataLoader isFetchingData={isFetchingData} />
       {availabilities.length === 0 ? (
-        <h4 className="text-center">No records found</h4>
+        <h4 className="text-center">{error}</h4>
       ) : (
         <div>
           <h2 className="text-center mt-3">My Availability</h2>

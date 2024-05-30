@@ -27,7 +27,8 @@ export const USER_ROLES = {
   doctor: "DOCTOR",
 };
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "https://clinic-mgmt-backend.onrender.com";
+// const API_BASE_URL = "http://localhost:5000";
 const AUTH_API = `${API_BASE_URL}/api/auth`;
 const ADMIN_API = `${API_BASE_URL}/api/admin`;
 const PATIENT_API = `${API_BASE_URL}/api/patient`;

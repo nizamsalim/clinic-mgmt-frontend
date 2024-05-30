@@ -3,26 +3,33 @@ import React, { useEffect, useState } from "react";
 import { API } from "../../Common/Constants";
 import { useAlert } from "../../Common/AlertContext";
 import { Button, Modal } from "react-bootstrap";
+import DataLoader from "../../Components/DataLoader";
 
 function ViewAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState("");
   const auth_token = localStorage.getItem("auth_token");
   const [flaggedAppointmentId, setFlaggedAppointmentId] = useState("");
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const { showAlert } = useAlert();
 
   const getAppointments = () => {
+    setIsFetchingData(true);
     axios
       .get(API.patient.getMyAppointments, { headers: { auth_token } })
       .then(({ data }) => {
+        setIsFetchingData(false);
         if (data.success) {
           if (data.appointments.length === 0) {
             setError("You have no upcoming appointments");
           }
-          console.log(data.appointments);
           setAppointments(data.appointments);
         }
+      })
+      .catch((err) => {
+        setIsFetchingData(false);
+        return showAlert("Something went wrong");
       });
   };
   useEffect(() => {
@@ -32,7 +39,6 @@ function ViewAppointments() {
   }, []);
 
   const handleCancelAppointment = (ap_id) => {
-    console.log(ap_id);
     axios
       .delete(`${API.patient.cancelAppointment}/${ap_id}`, {
         headers: { auth_token },
@@ -79,70 +85,73 @@ function ViewAppointments() {
           </Button>
         </Modal.Footer>
       </Modal>
-      <h3 className="text-center mt-3">My Appointments</h3>
-      {error !== "" ? (
+      <DataLoader isFetchingData={isFetchingData} />
+      {appointments.length === 0 ? (
         <h4 className="text-center">{error}</h4>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Appointment Number</th>
-              <th scope="col">Doctor Name</th>
-              <th scope="col">Department</th>
-              <th scope="col">Specialization</th>
-              <th scope="col">Date</th>
-              <th scope="col">From</th>
-              <th scope="col">To</th>
-              <th scope="col">Status</th>
-              <th scope="col">Cancel</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((ap, ind) => {
-              let status;
-              switch (ap.status) {
-                case "BOOKED":
-                  status = "table-warning";
-                  break;
-                case "COMPLETED":
-                  status = "table-success";
-                  break;
-                case "CANCELLED":
-                  status = "table-danger";
-                  break;
-                default:
-                  break;
-              }
-              return (
-                <tr key={ind} className={status}>
-                  <th scope="row">{ap.appointment_id}</th>
-                  <td>{ap.name}</td>
-                  <td>{ap.department_name}</td>
-                  <td>{ap.specialization_name}</td>
-                  <td>{new Date(ap.date).toDateString()}</td>
-                  <td>{ap.start_time}</td>
-                  <td>{ap.end_time}</td>
-                  <td>{ap.status}</td>
-                  <td>
-                    {ap.status === "BOOKED" ? (
-                      <button
-                        className="btn btn-danger"
-                        onClick={(e) => {
-                          setFlaggedAppointmentId(ap.appointment_id);
-                          handleShow();
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    ) : (
-                      <div></div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div>
+          <h3 className="text-center mt-3">My Appointments</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Appointment Number</th>
+                <th scope="col">Doctor Name</th>
+                <th scope="col">Department</th>
+                <th scope="col">Specialization</th>
+                <th scope="col">Date</th>
+                <th scope="col">From</th>
+                <th scope="col">To</th>
+                <th scope="col">Status</th>
+                <th scope="col">Cancel</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map((ap, ind) => {
+                let status;
+                switch (ap.status) {
+                  case "BOOKED":
+                    status = "table-warning";
+                    break;
+                  case "COMPLETED":
+                    status = "table-success";
+                    break;
+                  case "CANCELLED":
+                    status = "table-danger";
+                    break;
+                  default:
+                    break;
+                }
+                return (
+                  <tr key={ind} className={status}>
+                    <th scope="row">{ap.appointment_id}</th>
+                    <td>{ap.name}</td>
+                    <td>{ap.department_name}</td>
+                    <td>{ap.specialization_name}</td>
+                    <td>{new Date(ap.date).toDateString()}</td>
+                    <td>{ap.start_time}</td>
+                    <td>{ap.end_time}</td>
+                    <td>{ap.status}</td>
+                    <td>
+                      {ap.status === "BOOKED" ? (
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) => {
+                            setFlaggedAppointmentId(ap.appointment_id);
+                            handleShow();
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      ) : (
+                        <div></div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
